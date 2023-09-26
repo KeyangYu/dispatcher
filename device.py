@@ -4,7 +4,7 @@ from sklearn import datasets, svm, metrics
 from sklearn.model_selection import train_test_split
 
 # Connect to the RPC server (dispatcher)
-with xmlrpc.client.ServerProxy("http://192.168.1.234:9090/") as proxy:
+with xmlrpc.client.ServerProxy("http://192.168.1.234:9090/RPC2") as proxy:
     print("Fetching MNIST data from Dispatcher...")
     data, target = proxy.get_mnist()
 
