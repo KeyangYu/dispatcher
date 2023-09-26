@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Status</title>
+</head>
+<body>
+
+<h2>Node Status</h2>
+
+<table border="1">
+    <tr>
+        <th>Node ID</th>
+        <th>Status</th>
+    </tr>
+    {% for node_id, info in nodes.items() %}
+    <tr>
+        <td>{{ node_id }}</td>
+        <td>{{ info['status'] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
