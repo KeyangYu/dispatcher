@@ -24,11 +24,14 @@ server.register_introspection_functions()
 
 # Define a function to serve MNIST data
 def get_mnist():
+    # Get client IP address
+    node_id = server.RequestHandlerClass.client_address[0]
+
     # Register the node and set its status to 'working'
-    node_id = str(request.remote_addr)
     nodes[node_id] = {'status': 'working'}
 
     return mnist.data.tolist(), mnist.target.tolist()
+
 
 
 server.register_function(get_mnist, 'get_mnist')
