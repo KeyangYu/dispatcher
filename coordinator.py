@@ -4,6 +4,14 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler
 from sklearn.datasets import fetch_openml
 from threading import Thread
 
+
+# Subclass SimpleXMLRPCServer to capture client address
+class MyXMLRPCServer(SimpleXMLRPCServer):
+    def _dispatch(self, method, params):
+        self.current_client_address = self.RequestHandlerClass.client_address
+        return super()._dispatch(method, params)
+
+
 # Load MNIST data
 mnist = fetch_openml('mnist_784')
 
@@ -17,21 +25,20 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
 
 
-# Create server
-server = SimpleXMLRPCServer(('0.0.0.0', 9090), requestHandler=RequestHandler)
+# Create server using the subclassed MyXMLRPCServer
+server = MyXMLRPCServer(('0.0.0.0', 9090), requestHandler=RequestHandler)
 server.register_introspection_functions()
 
 
 # Define a function to serve MNIST data
 def get_mnist():
-    # Get client IP address
-    node_id = server.RequestHandlerClass.client_address[0]
+    # Get client IP address from the overridden _dispatch
+    node_id = server.current_client_address[0]
 
     # Register the node and set its status to 'working'
     nodes[node_id] = {'status': 'working'}
 
     return mnist.data.tolist(), mnist.target.tolist()
-
 
 
 server.register_function(get_mnist, 'get_mnist')
@@ -60,5 +67,4 @@ def run_rpc_server():
 if __name__ == '__main__':
     rpc_thread = Thread(target=run_rpc_server)
     rpc_thread.start()
-
     app.run(host='0.0.0.0', port=5050)
