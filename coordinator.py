@@ -27,7 +27,8 @@ def get_mnist():
     # Get client IP address from the server
     node_id = server.client_address[0]
     nodes[node_id] = {'status': 'working'}
-    return mnist.data.tolist(), mnist.target.tolist()
+    return mnist.data.values.tolist(), mnist.target.values.tolist()
+
 
 server.register_function(get_mnist, 'get_mnist')
 
