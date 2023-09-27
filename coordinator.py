@@ -39,6 +39,17 @@ def mark_training_complete(node_id):
 
 server.register_function(mark_training_complete, 'mark_training_complete')
 
+# Function to upload the trained model
+def upload_model(model_binary):
+    # Save the received model to a file
+    with open('received_model.pkl', 'wb') as f:
+        f.write(model_binary.data)
+    print("Model dumped in dispatcher.")
+    return True
+
+server.register_function(upload_model, 'upload_model')
+
+
 @app.route('/')
 def index():
     return render_template('status.html', nodes=nodes)
