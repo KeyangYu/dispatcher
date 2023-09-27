@@ -4,7 +4,7 @@ from sklearn import datasets, metrics
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
-from sklearn.externals import joblib
+import joblib
 from sklearn.metrics import accuracy_score, f1_score, matthews_corrcoef, confusion_matrix
 
 # Connect to the RPC server (dispatcher)
