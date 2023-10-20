@@ -13,3 +13,7 @@ Press enter on coordinator, then input 'start' to start training on all of the c
 To add mode nodes (or remove nodes), edit the rank.csv accordingly, and modify line 12, line 47, and line 70 accordingly of clientX.py.
 
 When the training finished on one client, the model will be dumped and sent back to the coordinator. When the coordinator collected the same amount of dumped model as dispatched dataset, the coordinator will run another test based on majority voting (averaging decision function is another approach and I'm working on it now, will update as another coordinator_SVM_AVG.py later)
+
+To start the dispatcher for CNN:
+
+Simply replce the SVM with CNN for all the file names.
