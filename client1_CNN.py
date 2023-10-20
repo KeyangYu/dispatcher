@@ -48,7 +48,7 @@ if __name__ == "__main__":
         if wait_for_start_signal():
             # Fetch the MNIST data
             print("Fetching MNIST data from Dispatcher...")
-            data, target = proxy.get_mnist(f"clientX")  # Replace X with the client number
+            data, target = proxy.get_mnist(f"client1")  # Replace X with the client number
 
             # Preprocess the data for CNN
             data = np.array(data).reshape(-1, 28, 28, 1)
@@ -58,12 +58,12 @@ if __name__ == "__main__":
             model.fit(data, target, epochs=10, batch_size=128, verbose=1)
 
             # Save the trained model to a file
-            model_name = f"clientX_model.h5"  # Replace X with the client number
+            model_name = f"client1_model.h5"  # Replace X with the client number
             model.save(model_name)
 
             # Send the model back to the coordinator
             with open(model_name, "rb") as model_file:
-                proxy.upload_model(xmlrpc.client.Binary(model_file.read()), f"clientX")  # Replace X with the client number
+                proxy.upload_model(xmlrpc.client.Binary(model_file.read()), f"client1")  # Replace X with the client number
 
             print("Model training completed and sent to the coordinator.")
             break
