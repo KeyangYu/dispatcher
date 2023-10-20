@@ -1,0 +1,15 @@
+To start dispatcher for SVM:
+
+All Clients are now set on localhost, if deploying clientX into different hosts than coordinator, modify line 14 for all clientX.py, put the ip address for coordinator in to replace 'localhost'.
+
+Make sure you have a rank.csv in the root folder.
+
+Run coordinator_SVM.py on your dispatcher.
+
+Run clientX.py on each of your training nodes.
+
+Press enter on coordinator, then input 'start' to start training on all of the clients.
+
+To add mode nodes (or remove nodes), edit the rank.csv accordingly, and modify line 12, line 47, and line 70 accordingly of clientX.py.
+
+When the training finished on one client, the model will be dumped and sent back to the coordinator. When the coordinator collected the same amount of dumped model as dispatched dataset, the coordinator will run another test based on majority voting (averaging decision function is another approach and I'm working on it now, will update as another coordinator_SVM_AVG.py later)
