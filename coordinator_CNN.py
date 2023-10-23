@@ -4,6 +4,7 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler
 from sklearn.datasets import fetch_openml
 from sklearn.utils import shuffle
 from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LogisticRegression
 from keras.models import load_model
 import numpy as np
 from threading import Thread
@@ -63,13 +64,15 @@ def upload_model(model_binary, client_id):
 
     models_received += 1
     if models_received == 3:
-        ensemble_and_evaluate()
+        # ensemble_and_evaluate_voting()
+        # ensemble_and_evaluate_avg()
+        ensemble_and_evaluate_stacking()
 
     return True
 
 server.register_function(upload_model, 'upload_model')
 
-def ensemble_and_evaluate():
+def ensemble_and_evaluate_voting():
     models = []
     for client_id in ["client1", "client2", "client3"]:
         model_name = f"{client_id}_model.h5"
@@ -90,6 +93,59 @@ def ensemble_and_evaluate():
 
     # Print evaluation metrics
     print(f"Accuracy: {accuracy_score(y_test, predictions)}")
+
+def ensemble_and_evaluate_avg():
+    models = []
+    for client_id in ["client1", "client2", "client3"]:
+        model_name = f"{client_id}_model.h5"
+        if os.path.exists(model_name):
+            models.append(load_model(model_name))
+        else:
+            print(f"Model for {client_id} not found.")
+            return
+
+    X_test = np.array(shuffled_data.iloc[int(0.7 * len(shuffled_data)):].values.tolist()).reshape(-1, 28, 28, 1)
+    y_test = np.array(shuffled_target.iloc[int(0.7 * len(shuffled_data)):].values.tolist()).astype(int)
+
+    # Averaging method
+    avg_predictions = np.zeros((len(X_test), 10))  # Assuming 10 classes for MNIST
+    for model in models:
+        avg_predictions += model.predict(X_test)
+    avg_predictions /= len(models)
+    final_predictions = np.argmax(avg_predictions, axis=1)
+
+    # Print evaluation metrics
+    print(f"Accuracy: {accuracy_score(y_test, final_predictions)}")
+
+def ensemble_and_evaluate_stacking():
+    models = []
+    for client_id in ["client1", "client2", "client3"]:
+        model_name = f"{client_id}_model.h5"
+        if os.path.exists(model_name):
+            models.append(load_model(model_name))
+        else:
+            print(f"Model for {client_id} not found.")
+            return
+
+    X_test = np.array(shuffled_data.iloc[int(0.7 * len(shuffled_data)):].values.tolist()).reshape(-1, 28, 28, 1)
+    y_test = np.array(shuffled_target.iloc[int(0.7 * len(shuffled_data)):].values.tolist()).astype(int)
+
+    # Generate base models' predictions
+    base_predictions = np.zeros((len(X_test), 10 * len(models)))
+    for idx, model in enumerate(models):
+        base_predictions[:, idx*10:(idx+1)*10] = model.predict(X_test)
+
+    # Now, you'd typically train a meta-model on these predictions. However, we'll directly use them for evaluation in this case.
+    # Train meta-model
+    meta_model = LogisticRegression(max_iter=1000)  # Increase max_iter for convergence
+    meta_model.fit(base_predictions, y_test)
+
+    # Predict using the meta-model
+    final_predictions = meta_model.predict(base_predictions)
+
+    # Print evaluation metrics
+    print(f"Accuracy: {accuracy_score(y_test, final_predictions)}")
+
 
 def should_start_training():
     return training_started
