@@ -17,3 +17,5 @@ When the training finished on one client, the model will be dumped and sent back
 To start the dispatcher for CNN:
 
 Simply replce the SVM with CNN for all the file names.
+
+File organization updated.
