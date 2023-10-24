@@ -1,3 +1,6 @@
 .DS_Store
 .pkl
 .h5
+/CNN/client3_model.h5
+/CNN/client2_model.h5
+/CNN/client1_model.h5
