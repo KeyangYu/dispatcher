@@ -11,7 +11,21 @@ import numpy as np
 from ensemble_yolo import ensemble_detections
 from ensemble_yolo import load_yolo_for_human_detection, train_yolo, yolo_predict
 import cv2
+import glob
 
+# Base directory
+WIDER_DIR = "/Users/yky/Downloads/WIDER/"
+
+# Load paths to images
+train_images = glob.glob(os.path.join(WIDER_DIR, "Images", "train", "*.jpg"))
+valid_images = glob.glob(os.path.join(WIDER_DIR, "Images", "valid", "*.jpg"))
+
+# For the sake of your existing code, I'll assume we're working with the 'train' set.
+# You can change this as per your needs.
+wider_images = train_images
+
+# Load corresponding annotations
+wider_annotations = [os.path.join(WIDER_DIR, "Annotations", os.path.basename(img_path) + ".txt") for img_path in wider_images]
 
 class CustomXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     def do_POST(self):

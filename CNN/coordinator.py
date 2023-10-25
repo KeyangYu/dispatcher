@@ -78,8 +78,6 @@ def upload_model(model_binary, client_id):
         # ensemble_and_evaluate_bagging()
         # ensemble_and_evaluate_model_mixture()
         ensemble_and_evaluate_neural_ensemble()
-
-
     return True
 
 server.register_function(upload_model, 'upload_model')
@@ -183,8 +181,6 @@ def ensemble_and_evaluate_stacking():
     for idx, model in enumerate(models):
         base_predictions[:, idx*10:(idx+1)*10] = model.predict(X_test)
 
-    # Now, you'd typically train a meta-model on these predictions. However, we'll directly use them for evaluation in this case.
-    # Train meta-model
     meta_model = LogisticRegression(max_iter=1000)  # Increase max_iter for convergence
     meta_model.fit(base_predictions, y_test)
 

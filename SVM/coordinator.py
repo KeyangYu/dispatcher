@@ -43,7 +43,7 @@ def get_mnist(client_id):
     proportion = client_ranks.get(client_id, 0.2)
 
     total_data_size = len(shuffled_data)
-    start_index = int((client_ranks[client_id] - 0.2) * total_data_size)
+    start_index = int((client_ranks[client_id] - 0.2) * 2 * total_data_size)
     end_index = start_index + int(proportion * total_data_size)
 
     return shuffled_data.iloc[start_index:end_index].values.tolist(), shuffled_target.iloc[
@@ -71,7 +71,7 @@ def upload_model(model_binary, client_id):
     print(f"Model from {client_id} dumped in dispatcher as {filename}.")
 
     models_received += 1
-    if models_received == 3:
+    if models_received == 5:
         ensemble_and_evaluate()
 
     return True
@@ -83,7 +83,7 @@ server.register_function(upload_model, 'upload_model')
 def ensemble_and_evaluate():
     # Load the SVM models
     models = []
-    for client_id in ["client1", "client2", "client3"]:
+    for client_id in ["client1", "client2", "client3", "client4", "client5"]:
         model_name = f"{client_id}_model.pkl"   # Assuming the coordinator knows the IP of each client
         if os.path.exists(model_name):         # Check if the model exists before loading
             models.append(joblib.load(model_name))
@@ -91,7 +91,6 @@ def ensemble_and_evaluate():
             print(f"Model for {client_id} not found.")
             return
 
-    # Assuming you use the latter 30% of the MNIST dataset for evaluation
     X_test, y_test = shuffled_data.iloc[int(0.7 * len(shuffled_data)):].values.tolist(), shuffled_target.iloc[
                                                                                          int(0.7 * len(
                                                                                              shuffled_data)):].values.tolist()
