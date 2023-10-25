@@ -14,7 +14,7 @@ import cv2
 import glob
 
 # Base directory
-WIDER_DIR = "/Users/yky/Downloads/WIDER/"
+WIDER_DIR = "WIDER/"
 
 # Load paths to images
 train_images = glob.glob(os.path.join(WIDER_DIR, "Images", "train", "*.jpg"))
@@ -49,6 +49,18 @@ def load_client_ranks_from_csv(file_name):
 
 client_ranks = load_client_ranks_from_csv('rank.csv')
 
+def read_wider_annotation(anno_path):
+    with open(anno_path, 'r') as f:
+        lines = f.readlines()
+        boxes = []
+        for line in lines[1:]:
+            box = [int(coord) for coord in line.strip().split()]
+            # Assuming format: [x, y, width, height]
+            x, y, w, h = box[:4]
+            # Convert to format: [x_min, y_min, x_max, y_max]
+            boxes.append([x, y, x+w, y+h])
+    return boxes
+
 
 def get_human_data(client_id):
     node_id = server.client_address[0]
@@ -56,15 +68,16 @@ def get_human_data(client_id):
 
     proportion = client_ranks.get(client_id, 0.2)
 
-    # You will need to modify the lines below to load the WIDER Person dataset instead of COCO
-    total_data_size = len(wider_images) # Assuming wider_images holds the paths to WIDER Person images
+    total_data_size = len(wider_images)
 
     start_index = int((client_ranks[client_id] - 0.2) * total_data_size)
     end_index = start_index + int(proportion * total_data_size)
 
-    # Get a subset of images and annotations based on the calculated indices
+    # Get a subset of images
     selected_images = wider_images[start_index:end_index]
-    selected_annotations = wider_annotations[start_index:end_index]
+
+    # Get corresponding annotations
+    selected_annotations = [read_wider_annotation(anno_path) for anno_path in wider_annotations[start_index:end_index]]
 
     return selected_images, selected_annotations
 
