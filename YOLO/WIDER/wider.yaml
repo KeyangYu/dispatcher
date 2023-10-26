@@ -1,6 +1,0 @@
-# wider.yaml
-train: WIDER/images/train/
-val: WIDER/images/valid/
-
-nc: 1  # Number of classes. Just 'person' for WIDER
-names: ['person']

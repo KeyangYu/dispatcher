@@ -169,7 +169,7 @@ def upload_model(model_binary, client_id):
     print(f"Model from {client_id} dumped in dispatcher as {filename}.")
 
     models_received += 1
-    if models_received == 3:
+    if models_received == 1:
         ensemble_and_evaluate_yolo()
 
     return True

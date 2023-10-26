@@ -4,3 +4,5 @@
 /CNN/client3_model.h5
 /CNN/client2_model.h5
 /CNN/client1_model.h5
+/YOLO/yolov5/WIDER/Images/train.cache
+/YOLO/yolov5/WIDER/Images/valid.cache

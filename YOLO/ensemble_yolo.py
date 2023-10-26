@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from pathlib import Path
 from ensemble_boxes import nms
+import subprocess
 
 
 def load_yolo_for_human_detection():
@@ -11,22 +12,29 @@ def load_yolo_for_human_detection():
 
 
 def train_yolo(model, train_images_path, train_annotations_path):
-    # Since we're using YOLOv5's training mechanism, the input paths won't be used directly.
-    # They're kept for reference.
-
     # Setting up training arguments
     cfg = "yolov5s.yaml"
-    epochs = 50
-    batch_size = 16
+    epochs = "50"
+    batch_size = "16"
 
     # Path to the WIDER dataset config
-    data = "wider.yaml"
+    data = "./yolov5/WIDER/wider.yaml"
 
     # Train the model
-    model = model.train()
-    results = model.fit(data=data, cfg=cfg, epochs=epochs, batch_size=batch_size)
+    cmd = [
+        "python", "yolov5/train.py",
+        "--data", data,
+        "--cfg", cfg,
+        "--weights", "",  # Start training from scratch
+        "--batch-size", batch_size,
+        "--epochs", epochs
+    ]
+    subprocess.check_call(cmd)
 
-    return model
+    # Load the trained weights and return
+    trained_model = torch.hub.load('ultralytics/yolov5', 'yolov5s', path_or_model="runs/train/exp/weights/best.pt")
+    return trained_model
+
 
 
 def yolo_predict(model, image):
