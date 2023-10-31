@@ -20,6 +20,8 @@ import time
 from xmlrpc.server import SimpleXMLRPCServer
 from threading import Thread
 from scipy import stats
+from keras.layers import Dropout, BatchNormalization
+from keras.preprocessing.image import ImageDataGenerator
 
 class CustomXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
     def do_POST(self):
@@ -83,7 +85,7 @@ def upload_model(model_binary, client_id):
     print(f"Model from {client_id} dumped in dispatcher as {filename}.")
 
     models_received += 1
-    if models_received == 3:
+    if models_received == 5:
         # ensemble_and_evaluate_voting()
         ensemble_and_evaluate_avg()
         # ensemble_and_evaluate_stacking()
@@ -94,17 +96,34 @@ def upload_model(model_binary, client_id):
 
 server.register_function(upload_model, 'upload_model')
 
+
 def build_cnn_model(input_shape, num_classes):
     model = Sequential()
+
+    # First Convolutional Layer
     model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', padding='same', input_shape=input_shape))
+    model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))  # Add dropout with 0.25 probability
+
+    # Second Convolutional Layer
     model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', padding='same'))
+    model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))  # Add dropout with 0.25 probability
+
+    # Fully Connected Layers
     model.add(Flatten())
     model.add(Dense(128, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))  # Add dropout with 0.5 probability
+
+    # Output Layer
     model.add(Dense(num_classes, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+
     return model
+
 
 def train_centralized_model():
     # Define input shape and number of classes for CIFAR-10
@@ -116,9 +135,21 @@ def train_centralized_model():
     y_train = to_categorical(np.array(shuffled_target_cifar[:int(0.7 * len(shuffled_data_cifar))].tolist()).astype(int),
                              num_classes=num_classes)
 
+    # Data augmentation
+    datagen = ImageDataGenerator(
+        rotation_range=15,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        horizontal_flip=True,
+        vertical_flip=False
+    )
+    datagen.fit(X_train)
+
     # Use the build_cnn_model function
     model = build_cnn_model(input_shape, num_classes)
-    model.fit(X_train, y_train, epochs=15, batch_size=4, verbose=1)
+
+    # Use fit_generator instead of fit for data augmentation
+    model.fit_generator(datagen.flow(X_train, y_train, batch_size=16),epochs=60, verbose=1)
 
     return model
 

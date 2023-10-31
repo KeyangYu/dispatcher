@@ -72,11 +72,11 @@ def upload_model(model_binary, client_id):
 
     models_received += 1
     if models_received == 3:
-        # ensemble_and_evaluate_voting()
-        # ensemble_and_evaluate_avg()
-        # ensemble_and_evaluate_stacking()
-        # ensemble_and_evaluate_bagging()
-        # ensemble_and_evaluate_model_mixture()
+        ensemble_and_evaluate_voting()
+        ensemble_and_evaluate_avg()
+        ensemble_and_evaluate_stacking()
+        ensemble_and_evaluate_bagging()
+        ensemble_and_evaluate_model_mixture()
         ensemble_and_evaluate_neural_ensemble()
     return True
 
