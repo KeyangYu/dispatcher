@@ -57,7 +57,8 @@ if __name__ == "__main__":
             target = to_categorical(np.array(target), 10)
 
             model = build_cnn_model((32, 32, 3), 10)
-            model.fit(data, target, epochs=30, batch_size=64, verbose=1)
+            #model.fit(data, target, epochs=30, batch_size=64, verbose=1)
+            model.fit(data, target, epochs=30, batch_size=128, verbose=1)
 
             # Predict classes
             predictions = model.predict(data)

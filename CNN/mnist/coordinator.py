@@ -35,7 +35,10 @@ training_started = False
 
 def load_client_ranks_from_csv(file_name):
     df = pd.read_csv(file_name)
-    ranks = dict(zip(df['client_id'], df['rank']))
+    total_rank = df['rank'].sum()
+    # Normalize the ranks
+    df['normalized_rank'] = df['rank'] / total_rank
+    ranks = dict(zip(df['client_id'], df['normalized_rank']))
     return ranks
 
 client_ranks = load_client_ranks_from_csv('rank.csv')
@@ -48,12 +51,14 @@ def get_mnist(client_id):
     proportion = client_ranks.get(client_id, 0.2)
 
     total_data_size = len(shuffled_data)
-    start_index = int((client_ranks[client_id] - 0.2) * total_data_size)
+    previous_proportions = sum([client_ranks[c_id] for c_id in client_ranks if client_ranks[c_id] < client_ranks[client_id]])
+    start_index = int(previous_proportions * total_data_size)
     end_index = start_index + int(proportion * total_data_size)
 
     return shuffled_data.iloc[start_index:end_index].values.tolist(), shuffled_target.iloc[start_index:end_index].values.tolist()
 
 server.register_function(get_mnist, 'get_mnist')
+
 
 def mark_training_complete(node_id):
     nodes[node_id]['status'] = 'finished'
@@ -153,8 +158,21 @@ def ensemble_and_evaluate_voting():
         preds = [np.argmax(model.predict(x.reshape(1, 28, 28, 1))) for model in models]
         predictions.append(max(set(preds), key=preds.count))
 
-    # Print evaluation metrics
-    print(f"Accuracy: {accuracy_score(y_test, predictions)}")
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, predictions)
+    print("voting_Confusion Matrix:")
+    print(cm)
+
+    # Matthews Correlation Coefficient
+    mcc = matthews_corrcoef(y_test, predictions)
+    print("voting_Matthews Correlation Coefficient:", mcc)
+
+    # Accuracy
+    print(f"voting_Accuracy: {accuracy_score(y_test, predictions)}")
+
+    # F1 Score
+    f1 = f1_score(y_test, predictions, average='weighted')
+    print("voting_F1 Score:", f1)
 
 def ensemble_and_evaluate_avg():
     models = []
@@ -176,8 +194,21 @@ def ensemble_and_evaluate_avg():
     avg_predictions /= len(models)
     final_predictions = np.argmax(avg_predictions, axis=1)
 
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, final_predictions)
+    print("avg_Confusion Matrix:")
+    print(cm)
+
+    # Matthews Correlation Coefficient
+    mcc = matthews_corrcoef(y_test, final_predictions)
+    print("avg_Matthews Correlation Coefficient:", mcc)
+
     # Print evaluation metrics
-    print(f"Accuracy: {accuracy_score(y_test, final_predictions)}")
+    print(f"avg_Accuracy: {accuracy_score(y_test, final_predictions)}")
+
+    # F1 score
+    f1 = f1_score(y_test, final_predictions, average='weighted')  # Using 'weighted' for multi-class classification
+    print("avg_F1 Score:", f1)
 
 def ensemble_and_evaluate_stacking():
     models = []
@@ -203,8 +234,21 @@ def ensemble_and_evaluate_stacking():
     # Predict using the meta-model
     final_predictions = meta_model.predict(base_predictions)
 
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, final_predictions)
+    print("stacking_Confusion Matrix:")
+    print(cm)
+
+    # Matthews Correlation Coefficient
+    mcc = matthews_corrcoef(y_test, final_predictions)
+    print("stacking_Matthews Correlation Coefficient:", mcc)
+
     # Print evaluation metrics
-    print(f"Accuracy: {accuracy_score(y_test, final_predictions)}")
+    print(f"stacking_Accuracy: {accuracy_score(y_test, final_predictions)}")
+
+    # F1 score
+    f1 = f1_score(y_test, final_predictions, average='weighted')  # Using 'weighted' for multi-class classification
+    print("stacking_F1 Score:", f1)
 
 
 def ensemble_and_evaluate_bagging(num_bags=3):
@@ -231,8 +275,21 @@ def ensemble_and_evaluate_bagging(num_bags=3):
     average_predictions = np.mean(predictions, axis=0)
     final_predictions = np.argmax(average_predictions, axis=1)
 
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, final_predictions)
+    print("bagging_Confusion Matrix:")
+    print(cm)
+
+    # Matthews Correlation Coefficient
+    mcc = matthews_corrcoef(y_test, final_predictions)
+    print("bagging_Matthews Correlation Coefficient:", mcc)
+
     # Print evaluation metrics
-    print(f"Accuracy: {accuracy_score(y_test, final_predictions)}")
+    print(f"bagging_Accuracy: {accuracy_score(y_test, final_predictions)}")
+
+    # F1 score
+    f1 = f1_score(y_test, final_predictions, average='weighted')  # Using 'weighted' for multi-class classification
+    print("bagging_F1 Score:", f1)
 
 def ensemble_and_evaluate_model_mixture():
     # Load the client models
@@ -259,8 +316,21 @@ def ensemble_and_evaluate_model_mixture():
     # Convert predictions to label indices
     final_label_predictions = np.argmax(final_prediction, axis=1)
 
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, final_prediction)
+    print("model_mixture_Confusion Matrix:")
+    print(cm)
+
+    # Matthews Correlation Coefficient
+    mcc = matthews_corrcoef(y_test, final_prediction)
+    print("model_mixture_Matthews Correlation Coefficient:", mcc)
+
     # Print evaluation metrics
-    print(f"Accuracy: {accuracy_score(y_test, final_label_predictions)}")
+    print(f"model_mixture_Accuracy: {accuracy_score(y_test, final_prediction)}")
+
+    # F1 score
+    f1 = f1_score(y_test, final_prediction, average='weighted')  # Using 'weighted' for multi-class classification
+    print("model_mixture_F1 Score:", f1)
 
 
 def ensemble_and_evaluate_neural_ensemble():
@@ -300,8 +370,21 @@ def ensemble_and_evaluate_neural_ensemble():
     meta_predictions = meta_model.predict(stacked_predictions)
     final_label_predictions = np.argmax(meta_predictions, axis=1)
 
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, final_label_predictions)
+    print("neural_ensemble_Confusion Matrix:")
+    print(cm)
+
+    # Matthews Correlation Coefficient
+    mcc = matthews_corrcoef(y_test, final_label_predictions)
+    print("neural_ensemble_Matthews Correlation Coefficient:", mcc)
+
     # Print evaluation metrics
-    print(f"Accuracy: {accuracy_score(y_test, final_label_predictions)}")
+    print(f"neural_ensemble_Accuracy: {accuracy_score(y_test, final_label_predictions)}")
+
+    # F1 score
+    f1 = f1_score(y_test, final_label_predictions, average='weighted')  # Using 'weighted' for multi-class classification
+    print("neural_ensemble_F1 Score:", f1)
 
 
 def centralized_training_flow():

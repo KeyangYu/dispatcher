@@ -4,7 +4,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
 from keras.optimizers import Adam
 from keras.utils import to_categorical
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, matthews_corrcoef
 import time
 from xmlrpc.server import SimpleXMLRPCServer
 
@@ -56,6 +56,23 @@ if __name__ == "__main__":
 
             model = build_cnn_model((28, 28, 1), 10)
             model.fit(data, target, epochs=10, batch_size=128, verbose=1)
+
+            # Predict classes
+            predictions = model.predict(data)
+            y_pred = np.argmax(predictions, axis=1)
+            y_true = np.argmax(target, axis=1)
+
+            # Calculate metrics
+            cm = confusion_matrix(y_true, y_pred)
+            acc = accuracy_score(y_true, y_pred)
+            f1 = f1_score(y_true, y_pred, average='macro')  # macro-average of class F1-scores
+            mcc = matthews_corrcoef(y_true, y_pred)
+
+            # Print metrics
+            print("Confusion Matrix:\n", cm)
+            print("Accuracy:", acc)
+            print("F1-score:", f1)
+            print("MCC:", mcc)
 
             # Save the trained model to a file
             model_name = f"client2_model.h5"  # Replace X with the client number
